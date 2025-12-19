@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Hero, Enemy, Boss, Equipment } from '../types';
-import { calculateTotalForce, getWinProbability } from '../gameLogic';
+import { calculateTotalForce, getWinProbability, getRarityFromProb } from '../gameLogic';
 
 interface CombatPanelProps {
   hero: Hero;
@@ -15,6 +15,7 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
   const heroForce = calculateTotalForce(hero);
   const winProb = Math.round(getWinProbability(heroForce, enemy.force) * 100);
   const isBoss = 'keyName' in enemy;
+  const enemyRarity = !isBoss ? getRarityFromProb((enemy as Enemy).spawnRate) : null;
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -32,8 +33,12 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
         </div>
 
         <div className="text-right w-1/3">
-          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">{isBoss ? 'GUARDIAN' : 'ENEMY'}</div>
-          <div className={`text-3xl font-black mb-1 ${isBoss ? 'text-red-500' : 'text-zinc-200'}`}>{enemy.name}</div>
+          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">
+            {isBoss ? 'GUARDIAN' : `NUMBER ${enemy.id} ${enemyRarity?.label.toUpperCase()}`}
+          </div>
+          <div className={`text-3xl font-black mb-1 ${isBoss ? 'text-red-500' : enemyRarity?.color}`}>
+            {enemy.name}
+          </div>
           <div className={`inline-block font-mono text-xl px-4 py-1 rounded-lg border ${isBoss ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
             {enemy.force}
           </div>

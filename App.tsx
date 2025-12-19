@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Hero, GameState, Enemy, Boss, CharacterClass, Equipment } from './types';
+import React, { useState, useEffect } from 'react';
+import { Hero, GameState, Enemy, Boss, CharacterClass, Equipment, SlotType, Rarity } from './types';
 import { CLASS_DATA, ENEMY_DATA, BOSS_DATA, SLOT_NAMES } from './constants';
 import { calculateTotalForce, getWinProbability, generateLoot, handleLevelUp } from './gameLogic';
 
@@ -14,13 +14,22 @@ import CodexView from './components/CodexView';
 import SanctuaryPanel from './components/SanctuaryPanel';
 
 const App: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>({
-    hero: null,
-    unlockedKeys: [],
-    maxBossDefeated: 0,
-    isDead: false,
-    gameWon: false,
-    logs: ["Welcome to the Tower of the Cursed. Ascend or perish."]
+  const [gameState, setGameState] = useState<GameState>(() => {
+    // Initial state with empty collection
+    return {
+      hero: null,
+      unlockedKeys: [],
+      maxBossDefeated: 0,
+      isDead: false,
+      gameWon: false,
+      logs: ["Welcome to the Tower of the Cursed. Ascend or perish."],
+      collection: {
+        Weapon: [],
+        Armor: [],
+        Accessory: [],
+        Relic: []
+      }
+    };
   });
 
   const [currentView, setCurrentView] = useState<'summon' | 'dungeon' | 'combat' | 'dead' | 'win' | 'codex' | 'sanctuary'>('summon');
@@ -34,16 +43,27 @@ const App: React.FC = () => {
     }));
   };
 
+  const updateCollection = (slot: SlotType, rarity: Rarity) => {
+    setGameState(prev => {
+      if (prev.collection[slot].includes(rarity)) return prev;
+      return {
+        ...prev,
+        collection: {
+          ...prev.collection,
+          [slot]: [...prev.collection[slot], rarity]
+        }
+      };
+    });
+  };
+
   const summonHero = (isMiserable: boolean = false) => {
     const cost = isMiserable ? 0 : (gameState.hero ? 10 : 0);
     
-    // Check if we already have gold for a normal summon if we are "dead" but have cash
     if (!isMiserable && gameState.hero && gameState.hero.gold < cost && !gameState.isDead) {
       addLog("Not enough gold to summon a new hero.");
       return;
     }
 
-    // Weighted selection
     let r = Math.random();
     let selectedClass = CLASS_DATA[0];
     let acc = 0;
@@ -126,10 +146,12 @@ const App: React.FC = () => {
 
         if (Math.random() < enemy.lootChance) {
           loot = generateLoot(enemy.force);
+          if (loot) updateCollection(loot.slot, loot.rarity);
         }
 
         setGameState(prev => {
           if (!prev.hero) return prev;
+          let oldLevel = prev.hero.level;
           let newHero = { ...prev.hero };
           newHero.exp += exp;
           newHero.gold += gold;
@@ -141,10 +163,14 @@ const App: React.FC = () => {
             }
           }
           newHero = handleLevelUp(newHero);
+          
+          if (newHero.level > oldLevel) {
+            setTimeout(() => addLog(`Level Up! Level ${newHero.level} reached. Vitals restored!`), 500);
+          }
+          
           return { ...prev, hero: newHero };
         });
 
-        // 20% chance to find a sanctuary after a normal enemy victory
         if (Math.random() < 0.20) {
           setTimeout(() => setCurrentView('sanctuary'), 1500);
         }
@@ -255,7 +281,7 @@ const App: React.FC = () => {
           )}
 
           {currentView === 'codex' && (
-            <CodexView onClose={() => setCurrentView(gameState.hero ? 'dungeon' : 'summon')} />
+            <CodexView collection={gameState.collection} onClose={() => setCurrentView(gameState.hero ? 'dungeon' : 'summon')} />
           )}
 
           {currentView === 'dead' && (

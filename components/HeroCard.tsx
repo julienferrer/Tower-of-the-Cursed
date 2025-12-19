@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Hero } from '../types';
-import { calculateTotalForce } from '../gameLogic';
+import { calculateTotalForce, getRequiredExp, getRarityFromProb } from '../gameLogic';
 import { SLOT_NAMES } from '../constants';
 
 interface HeroCardProps {
@@ -14,14 +14,21 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, isDead, onSummon }) => {
   if (!hero) return null;
 
   const totalForce = calculateTotalForce(hero);
+  const expNeeded = getRequiredExp(hero.level);
+  const rarity = getRarityFromProb(hero.class.probability);
 
   return (
     <div className={`bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl transition-all ${isDead ? 'opacity-50 grayscale scale-[0.98]' : ''}`}>
       <div className={`bg-zinc-800/50 p-6 flex items-start justify-between border-b border-zinc-700/30 ${hero.isMiserable ? 'border-l-4 border-l-zinc-600' : ''}`}>
         <div>
-          <h2 className={`font-bold text-xs uppercase tracking-widest mb-1 ${hero.isMiserable ? 'text-zinc-500' : 'text-emerald-500'}`}>
+          <h2 className={`font-bold text-xs uppercase tracking-widest mb-1 ${hero.isMiserable ? 'text-zinc-500' : rarity.color}`}>
             {hero.isMiserable ? 'WRETCHED ' : ''}{hero.class.name}
           </h2>
+          {!hero.isMiserable && (
+            <div className={`text-[9px] font-bold uppercase tracking-wider mb-2 inline-block px-2 py-0.5 rounded ${rarity.bg} ${rarity.color}`}>
+              {rarity.label}
+            </div>
+          )}
           <div className="flex items-center gap-3">
              <span className="text-3xl font-black tracking-tight">Level {hero.level}</span>
           </div>
@@ -48,9 +55,10 @@ const HeroCard: React.FC<HeroCardProps> = ({ hero, isDead, onSummon }) => {
             <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
                <div 
                  className="bg-emerald-500 h-full transition-all duration-500" 
-                 style={{ width: `${(hero.exp / (hero.level * 100)) * 100}%` }} 
+                 style={{ width: `${Math.min(100, (hero.exp / expNeeded) * 100)}%` }} 
                />
             </div>
+            <div className="text-[8px] text-zinc-600 font-mono mt-1 text-right">{hero.exp} / {expNeeded}</div>
           </div>
         </div>
 

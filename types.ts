@@ -65,4 +65,7 @@ export interface GameState {
   isDead: boolean;
   gameWon: boolean;
   logs: string[];
+  collection: {
+    [K in SlotType]: Rarity[];
+  };
 }
