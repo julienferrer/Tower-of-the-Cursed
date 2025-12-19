@@ -16,8 +16,8 @@ export const getWinProbability = (heroForce: number, enemyForce: number): number
 };
 
 /**
- * Calcule l'expérience nécessaire pour le niveau suivant.
- * Formule accélérée : 20 de base + 20 par niveau.
+ * Calculates experience required for the next level.
+ * Accelerated formula: 20 base + 20 per level.
  */
 export const getRequiredExp = (level: number): number => {
   return 20 + (level * 20);
@@ -25,7 +25,7 @@ export const getRequiredExp = (level: number): number => {
 
 export const generateLoot = (enemyForce: number): Equipment | null => {
   const baseSeed = Math.random();
-  // Bonus de rareté basé sur la force de l'ennemi (max +15% de chance de meilleure rareté)
+  // Rarity bonus based on enemy force (max +15% chance for better rarity)
   const forceBonus = Math.min(0.15, enemyForce / 500);
   const roll = baseSeed - forceBonus;
 
@@ -54,16 +54,17 @@ export const handleLevelUp = (hero: Hero): Hero => {
   let needed = getRequiredExp(currentHero.level);
   let leveledUp = false;
   
-  // Boucle au cas où le gain d'XP ferait monter plusieurs niveaux d'un coup
+  // Loop in case XP gain skips multiple levels
   while (currentHero.exp >= needed) {
     currentHero.exp -= needed;
     currentHero.level += 1;
-    currentHero.baseForce += 2;
+    // Add +15 to reach target potential (e.g., 40 -> 325 in 19 levels)
+    currentHero.baseForce += 15;
     leveledUp = true;
     needed = getRequiredExp(currentHero.level);
   }
 
-  // Si le joueur a monté de niveau, on restaure toutes ses vies
+  // If level up, restore all lives
   if (leveledUp) {
     currentHero.lives = 2;
   }
@@ -72,7 +73,7 @@ export const handleLevelUp = (hero: Hero): Hero => {
 };
 
 /**
- * Détermine la rareté basée sur une probabilité (ex: 0.10 pour 10%)
+ * Determines rarity based on probability (e.g., 0.10 for 10%)
  */
 export const getRarityFromProb = (prob: number) => {
   const p = prob * 100;

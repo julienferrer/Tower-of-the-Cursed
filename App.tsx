@@ -15,7 +15,6 @@ import SanctuaryPanel from './components/SanctuaryPanel';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(() => {
-    // Initial state with empty collection
     return {
       hero: null,
       unlockedKeys: [],
@@ -56,10 +55,20 @@ const App: React.FC = () => {
     });
   };
 
-  const summonHero = (isMiserable: boolean = false) => {
-    const cost = isMiserable ? 0 : (gameState.hero ? 10 : 0);
+  const restartJourney = () => {
+    setGameState(prev => ({
+      ...prev,
+      hero: null,
+      isDead: false,
+      logs: ["A new journey begins. The tower remains, but your pockets are empty."]
+    }));
+    setCurrentView('summon');
+  };
+
+  const summonHero = () => {
+    const cost = (gameState.hero ? 10 : 0);
     
-    if (!isMiserable && gameState.hero && gameState.hero.gold < cost && !gameState.isDead) {
+    if (gameState.hero && gameState.hero.gold < cost && !gameState.isDead) {
       addLog("Not enough gold to summon a new hero.");
       return;
     }
@@ -75,28 +84,20 @@ const App: React.FC = () => {
       }
     }
 
-    const baseForceValue = Math.floor(Math.random() * (selectedClass.maxForce - selectedClass.minForce + 1)) + selectedClass.minForce;
-    let finalBaseForce = Math.floor(baseForceValue / 10);
-    
-    if (isMiserable) {
-      finalBaseForce = Math.max(2, Math.floor(finalBaseForce / 2));
-    }
-
     const newHero: Hero = {
-      name: isMiserable ? `The Wretched` : `Dungeon Seeker`,
+      name: `Dungeon Seeker`,
       class: selectedClass,
-      baseForce: finalBaseForce,
+      baseForce: selectedClass.minForce,
       exp: 0,
       level: 1,
       gold: gameState.hero ? Math.max(0, gameState.hero.gold - cost) : 0,
       lives: 2,
-      isMiserable: isMiserable,
       equipment: { Weapon: null, Armor: null, Accessory: null, Relic: null }
     };
 
     setGameState(prev => ({ ...prev, hero: newHero, isDead: false }));
     setCurrentView('dungeon');
-    addLog(isMiserable ? "You signed a desperate pact. A wretched soul enters the tower." : `Summoned a ${selectedClass.name}. Base Force: ${newHero.baseForce}`);
+    addLog(`Summoned: ${selectedClass.name}. Base Force: ${newHero.baseForce}`);
   };
 
   const startCombat = (enemy: Enemy | Boss) => {
@@ -123,7 +124,7 @@ const App: React.FC = () => {
       if (isBoss) {
         const boss = activeEnemy as Boss;
         gold = 50 + boss.id * 20;
-        message = `You defeated the ${boss.name}! Obtained ${boss.keyName}.`;
+        message = `You defeated ${boss.name}! Obtained: ${boss.keyName}.`;
         
         setGameState(prev => {
           const keys = prev.unlockedKeys.includes(boss.keyName) ? prev.unlockedKeys : [...prev.unlockedKeys, boss.keyName];
@@ -181,7 +182,7 @@ const App: React.FC = () => {
         setGameState(prev => ({ ...prev, isDead: true }));
         setTimeout(() => setCurrentView('dead'), 1500);
       } else {
-        message = `You were defeated by ${activeEnemy.name}. Lost 1 life.`;
+        message = `Defeat against ${activeEnemy.name}. Lost 1 life.`;
         setGameState(prev => {
           if (!prev.hero) return prev;
           const lives = prev.hero.lives - 1;
@@ -254,7 +255,7 @@ const App: React.FC = () => {
           {currentView === 'summon' && !gameState.hero && (
             <div className="h-full bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-12 text-center">
               <h2 className="text-3xl font-bold mb-8">Choose your fate</h2>
-              <button onClick={() => summonHero()} className="bg-emerald-600 px-8 py-3 rounded-xl font-bold shadow-xl mb-4">Summon Hero (Free)</button>
+              <button onClick={() => summonHero()} className="bg-emerald-600 px-8 py-3 rounded-xl font-bold shadow-xl mb-4">Summon (Free)</button>
               <button onClick={() => setCurrentView('codex')} className="text-zinc-500 hover:text-white transition-colors">Consult the Codex</button>
             </div>
           )}
@@ -264,7 +265,7 @@ const App: React.FC = () => {
               <div className="bg-zinc-900/80 rounded-3xl p-6 border border-zinc-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-zinc-400">Current Objective</h3>
-                  <p className="text-2xl font-black">Descend or Challenge</p>
+                  <p className="text-2xl font-black">Explore or Challenge</p>
                 </div>
                 <button onClick={findEnemy} className="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold">Find Enemy</button>
               </div>
@@ -286,18 +287,25 @@ const App: React.FC = () => {
 
           {currentView === 'dead' && (
             <div className="bg-red-950/20 border border-red-900/50 rounded-3xl p-12 text-center flex flex-col items-center justify-center animate-in zoom-in duration-300">
-              <h2 className="text-4xl font-black text-red-500 mb-4">CHARACTER LOST</h2>
-              <p className="text-zinc-400 mb-8 max-w-sm">Your items and progress are gone, but your keys remain.</p>
-              <div className="flex flex-col gap-4">
-                <button onClick={() => summonHero()} disabled={gameState.hero && gameState.hero.gold < 10} className="bg-red-600 disabled:opacity-30 text-white px-8 py-3 rounded-xl font-bold">
-                  New Summon (10🪙)
-                </button>
-                {gameState.hero && gameState.hero.gold < 10 && (
-                  <button onClick={() => summonHero(true)} className="bg-zinc-800 text-zinc-300 px-8 py-3 rounded-xl font-bold border border-zinc-700">
-                    Pacte du Désespoir (Gratuit)
+              {gameState.hero && gameState.hero.gold < 10 ? (
+                <>
+                  <h2 className="text-5xl font-black text-red-600 mb-4">TOTAL DEFEAT</h2>
+                  <p className="text-zinc-400 mb-8 max-w-sm font-mono uppercase tracking-widest text-xs">
+                    You have run out of gold to summon a new protector. The tower has consumed your legacy.
+                  </p>
+                  <button onClick={restartJourney} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors">
+                    RESTART JOURNEY
                   </button>
-                )}
-              </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-4xl font-black text-red-500 mb-4 uppercase">Character Lost</h2>
+                  <p className="text-zinc-400 mb-8 max-w-sm">Your items have vanished, but your keys are eternal.</p>
+                  <button onClick={summonHero} className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-red-900/20 hover:bg-red-500 transition-colors">
+                    New Summon (10🪙)
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

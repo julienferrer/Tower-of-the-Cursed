@@ -10,7 +10,7 @@ interface CodexViewProps {
 }
 
 const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
-  const [tab, setTab] = useState<'enemies' | 'heroes' | 'vault'>('enemies');
+  const [tab, setTab] = useState<'enemies' | 'heroes' | 'vault' | 'progression'>('enemies');
 
   const rarities = [Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY];
 
@@ -28,22 +28,28 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
         </button>
       </div>
 
-      <div className="flex border-b border-zinc-800">
+      <div className="flex border-b border-zinc-800 overflow-x-auto scrollbar-hide">
         <button 
           onClick={() => setTab('enemies')}
-          className={`flex-1 py-4 font-bold text-xs uppercase tracking-widest transition-colors ${tab === 'enemies' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`flex-1 min-w-[100px] py-4 font-bold text-[10px] uppercase tracking-widest transition-colors ${tab === 'enemies' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           Bestiary
         </button>
         <button 
           onClick={() => setTab('heroes')}
-          className={`flex-1 py-4 font-bold text-xs uppercase tracking-widest transition-colors ${tab === 'heroes' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`flex-1 min-w-[100px] py-4 font-bold text-[10px] uppercase tracking-widest transition-colors ${tab === 'heroes' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          Soul Registry
+          Registry
+        </button>
+        <button 
+          onClick={() => setTab('progression')}
+          className={`flex-1 min-w-[100px] py-4 font-bold text-[10px] uppercase tracking-widest transition-colors ${tab === 'progression' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          Force Chart
         </button>
         <button 
           onClick={() => setTab('vault')}
-          className={`flex-1 py-4 font-bold text-xs uppercase tracking-widest transition-colors ${tab === 'vault' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`flex-1 min-w-[100px] py-4 font-bold text-[10px] uppercase tracking-widest transition-colors ${tab === 'vault' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           Treasury
         </button>
@@ -79,16 +85,14 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
         {tab === 'heroes' && (
           <div className="space-y-3">
             <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-zinc-600 uppercase mb-2 px-2">
-              <div className="col-span-5">Class</div>
-              <div className="col-span-2">Potential</div>
+              <div className="col-span-7">Class</div>
               <div className="col-span-5 text-right">Rarity</div>
             </div>
             {CLASS_DATA.map((c) => {
               const rarity = getRarityFromProb(c.probability);
               return (
                 <div key={c.id} className="grid grid-cols-12 gap-2 p-3 bg-black/30 rounded-xl border border-zinc-800/50 items-center text-sm font-mono">
-                  <div className={`col-span-5 font-bold ${rarity.color}`}>{c.name}</div>
-                  <div className="col-span-2 text-zinc-200">{Math.floor(c.minForce/10)}-{Math.floor(c.maxForce/10)}</div>
+                  <div className={`col-span-7 font-bold ${rarity.color}`}>{c.name}</div>
                   <div className="col-span-5 flex justify-end">
                     <span className={`text-[9px] px-2 py-0.5 rounded-full border ${rarity.bg} ${rarity.color} ${rarity.border} font-bold uppercase`}>
                       {rarity.label}
@@ -97,6 +101,41 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {tab === 'progression' && (
+          <div className="space-y-4">
+             <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl mb-6">
+               <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">Growth Mechanic</h3>
+               <p className="text-[10px] text-zinc-500 font-mono">Every soul gains exactly +15 Base Force per level.</p>
+             </div>
+             <div className="overflow-x-auto">
+                <table className="w-full text-left text-[11px] font-mono">
+                  <thead className="text-zinc-600 uppercase border-b border-zinc-800">
+                    <tr>
+                      <th className="py-2 pr-4">Class</th>
+                      <th className="py-2 px-2 text-center">Lvl 1</th>
+                      <th className="py-2 px-2 text-center">Lvl 5</th>
+                      <th className="py-2 px-2 text-center">Lvl 10</th>
+                      <th className="py-2 px-2 text-center">Lvl 15</th>
+                      <th className="py-2 px-2 text-center">Lvl 20</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/50">
+                    {CLASS_DATA.map(c => (
+                      <tr key={c.id} className="hover:bg-zinc-800/20">
+                        <td className="py-3 pr-4 font-bold text-zinc-300">{c.name}</td>
+                        <td className="py-3 px-2 text-center text-zinc-500">{c.minForce}</td>
+                        <td className="py-3 px-2 text-center text-zinc-400">{c.minForce + (4 * 15)}</td>
+                        <td className="py-3 px-2 text-center text-zinc-300">{c.minForce + (9 * 15)}</td>
+                        <td className="py-3 px-2 text-center text-zinc-200">{c.minForce + (14 * 15)}</td>
+                        <td className="py-3 px-2 text-center text-emerald-500 font-bold">{c.maxForce}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+             </div>
           </div>
         )}
 
@@ -130,36 +169,6 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
                   </div>
                 ))}
               </div>
-            </section>
-
-            {/* Collection Log */}
-            <section>
-               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Collection Log</h3>
-               <div className="grid grid-cols-1 gap-4">
-                 {SLOT_NAMES.map(slot => (
-                   <div key={slot} className="bg-black/30 p-4 rounded-2xl border border-zinc-800">
-                      <div className="text-xs font-bold uppercase mb-3 text-zinc-400">{slot}s Found</div>
-                      <div className="flex gap-2">
-                         {rarities.map(r => {
-                           const isFound = collection && collection[slot].includes(r);
-                           const rColor = getRarityFromProb(r === Rarity.LEGENDARY ? 0.01 : r === Rarity.EPIC ? 0.02 : r === Rarity.RARE ? 0.04 : r === Rarity.UNCOMMON ? 0.08 : 0.15);
-                           return (
-                             <div 
-                               key={r} 
-                               className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${isFound ? `${rColor.bg} ${rColor.border} text-xl shadow-lg` : 'bg-zinc-900 border-zinc-800 text-zinc-800 opacity-20 grayscale'}`}
-                               title={isFound ? `${r} ${slot}` : 'Not found'}
-                             >
-                                {slot === 'Weapon' && '⚔️'}
-                                {slot === 'Armor' && '🛡️'}
-                                {slot === 'Accessory' && '💍'}
-                                {slot === 'Relic' && '🏺'}
-                             </div>
-                           );
-                         })}
-                      </div>
-                   </div>
-                 ))}
-               </div>
             </section>
           </div>
         )}
