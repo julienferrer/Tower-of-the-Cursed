@@ -62,7 +62,8 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
               <div className="col-span-1">#</div>
               <div className="col-span-4">Enemy</div>
               <div className="col-span-2">Force</div>
-              <div className="col-span-5 text-right">Rarity</div>
+              <div className="col-span-2 text-center">Spawn</div>
+              <div className="col-span-3 text-right">Rarity</div>
             </div>
             {ENEMY_DATA.map((enemy) => {
               const rarity = getRarityFromProb(enemy.spawnRate);
@@ -71,9 +72,10 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
                   <div className="col-span-1 text-zinc-600">{enemy.id}</div>
                   <div className={`col-span-4 font-bold ${rarity.color}`}>{enemy.name}</div>
                   <div className="col-span-2 text-zinc-200">{enemy.force}</div>
-                  <div className="col-span-5 flex justify-end">
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full border ${rarity.bg} ${rarity.color} ${rarity.border} font-bold uppercase`}>
-                      {rarity.label}
+                  <div className="col-span-2 text-center text-zinc-500">{(enemy.spawnRate * 100).toFixed(1)}%</div>
+                  <div className="col-span-3 flex justify-end">
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full border ${rarity.bg} ${rarity.color} ${rarity.border} font-bold uppercase`}>
+                      {rarity.label.split(' ')[0]}
                     </span>
                   </div>
                 </div>
@@ -85,15 +87,17 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
         {tab === 'heroes' && (
           <div className="space-y-3">
             <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-zinc-600 uppercase mb-2 px-2">
-              <div className="col-span-7">Class</div>
-              <div className="col-span-5 text-right">Rarity</div>
+              <div className="col-span-5">Class</div>
+              <div className="col-span-3 text-center">Summon Rate</div>
+              <div className="col-span-4 text-right">Rarity</div>
             </div>
             {CLASS_DATA.map((c) => {
               const rarity = getRarityFromProb(c.probability);
               return (
                 <div key={c.id} className="grid grid-cols-12 gap-2 p-3 bg-black/30 rounded-xl border border-zinc-800/50 items-center text-sm font-mono">
-                  <div className={`col-span-7 font-bold ${rarity.color}`}>{c.name}</div>
-                  <div className="col-span-5 flex justify-end">
+                  <div className={`col-span-5 font-bold ${rarity.color}`}>{c.name}</div>
+                  <div className="col-span-3 text-center text-zinc-400 font-bold">{(c.probability * 100).toFixed(1)}%</div>
+                  <div className="col-span-4 flex justify-end">
                     <span className={`text-[9px] px-2 py-0.5 rounded-full border ${rarity.bg} ${rarity.color} ${rarity.border} font-bold uppercase`}>
                       {rarity.label}
                     </span>
@@ -141,7 +145,6 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
 
         {tab === 'vault' && (
           <div className="space-y-8">
-            {/* Guide Section */}
             <section>
               <h3 className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-4 border-l-2 border-emerald-500 pl-3">How to Obtain</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -156,7 +159,6 @@ const CodexView: React.FC<CodexViewProps> = ({ collection, onClose }) => {
               </div>
             </section>
 
-            {/* Rarity Table */}
             <section>
               <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Rarity Multipliers</h3>
               <div className="flex flex-wrap gap-2">
