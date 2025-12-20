@@ -18,44 +18,44 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
   const enemyRarity = !isBoss ? getRarityFromProb((enemy as Enemy).spawnRate) : null;
 
   return (
-    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 md:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-4 md:p-8 shadow-2xl animate-in zoom-in-95 duration-200 min-h-[400px] flex flex-col justify-center">
       <div className="flex flex-row items-start justify-between mb-8 md:mb-12 gap-2">
         {/* Hero Side */}
-        <div className="flex flex-col items-center md:items-start w-[45%]">
+        <div className="flex flex-col items-center md:items-start w-[42%]">
           <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-1">YOU</div>
           <div className="text-lg md:text-3xl font-black mb-2 text-center md:text-left truncate w-full">Hero</div>
-          <div className="bg-emerald-500/10 text-emerald-400 font-mono text-base md:text-xl px-3 md:px-4 py-1 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+          <div className="bg-emerald-500/10 text-emerald-400 font-mono text-base md:text-xl px-3 md:px-4 py-1.5 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
             {heroForce}
           </div>
         </div>
 
         {/* VS Indicator */}
-        <div className="flex flex-col items-center justify-center pt-6">
+        <div className="flex flex-col items-center justify-center pt-6 shrink-0">
           <div className="text-zinc-800 text-xl md:text-5xl font-black italic select-none">VS</div>
         </div>
 
         {/* Enemy Side */}
-        <div className="flex flex-col items-center md:items-end w-[45%]">
+        <div className="flex flex-col items-center md:items-end w-[42%] overflow-hidden">
           <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-1">
             {isBoss ? 'GUARDIAN' : `LEVEL ${enemy.id}`}
           </div>
-          <div className={`text-lg md:text-3xl font-black mb-2 text-center md:text-right leading-tight break-words w-full ${isBoss ? 'text-red-500' : enemyRarity?.color}`}>
+          <div className={`text-base md:text-3xl font-black mb-2 text-center md:text-right leading-tight break-words w-full h-auto min-h-[1.5em] flex items-center justify-center md:justify-end ${isBoss ? 'text-red-500' : enemyRarity?.color}`}>
             {enemy.name}
           </div>
-          <div className={`font-mono text-base md:text-xl px-3 md:px-4 py-1 rounded-xl border ${isBoss ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
+          <div className={`font-mono text-base md:text-xl px-3 md:px-4 py-1.5 rounded-xl border shrink-0 ${isBoss ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
             {enemy.force}
           </div>
         </div>
       </div>
 
       {!result ? (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
           <div className="mb-8 w-full max-w-sm">
              <div className="flex justify-between text-[10px] font-bold text-zinc-600 uppercase mb-2 tracking-widest px-1">
                <span>Win Rate</span>
                <span className={winProb > 70 ? 'text-emerald-500' : winProb > 40 ? 'text-yellow-500' : 'text-red-500'}>{winProb}%</span>
              </div>
-             <div className="h-3 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 shadow-inner p-0.5">
+             <div className="h-4 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 shadow-inner p-0.5">
                 <div 
                   className={`h-full rounded-full transition-all duration-700 ${winProb > 70 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : winProb > 40 ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}
                   style={{ width: `${winProb}%` }}
@@ -63,30 +63,30 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
              </div>
           </div>
 
-          <div className="flex gap-3 w-full max-w-sm">
-             <button 
-               onClick={onClose}
-               className="flex-1 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-600 rounded-2xl font-bold transition-all border border-zinc-800 active:scale-95 text-xs uppercase tracking-widest"
-             >
-               Retreat
-             </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
              <button 
                onClick={onFight}
-               className={`flex-[2] py-4 text-black rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl ${isBoss ? 'bg-red-600 hover:bg-red-500' : 'bg-white hover:bg-zinc-200'}`}
+               className={`w-full py-5 text-black rounded-2xl font-black text-xl transition-all active:scale-95 shadow-xl order-1 sm:order-2 ${isBoss ? 'bg-red-600 hover:bg-red-500' : 'bg-white hover:bg-zinc-200'}`}
              >
-               FIGHT
+               ENGAGE
+             </button>
+             <button 
+               onClick={onClose}
+               className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-600 rounded-2xl font-bold transition-all border border-zinc-800 active:scale-95 text-xs uppercase tracking-widest order-2 sm:order-1"
+             >
+               Retreat
              </button>
           </div>
           
           {isBoss && (
-            <div className="mt-8 px-6 py-3 bg-red-950/10 border border-red-900/20 rounded-xl text-red-600 text-[9px] font-bold uppercase tracking-widest text-center animate-pulse">
-              ⚠️ Warning: Defeat means permanent loss
+            <div className="mt-8 px-6 py-3 bg-red-950/10 border border-red-900/20 rounded-xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center animate-pulse">
+              DANGER: DEFEAT IS ABSOLUTE
             </div>
           )}
         </div>
       ) : (
         <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className={`text-4xl md:text-5xl font-black mb-6 tracking-tighter ${result.success ? 'text-emerald-500' : 'text-red-600'}`}>
+          <div className={`text-5xl md:text-7xl font-black mb-6 tracking-tighter ${result.success ? 'text-emerald-500' : 'text-red-600'}`}>
             {result.success ? 'VICTORY' : 'DEFEAT'}
           </div>
           
@@ -122,7 +122,7 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
 
           <button 
             onClick={onClose}
-            className="w-full max-w-xs py-4 bg-white hover:bg-zinc-200 text-black rounded-2xl font-black transition-all active:scale-95"
+            className="w-full max-w-xs py-5 bg-white hover:bg-zinc-200 text-black rounded-2xl font-black text-lg transition-all active:scale-95 shadow-lg"
           >
             CONTINUE
           </button>

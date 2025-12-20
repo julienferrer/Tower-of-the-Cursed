@@ -283,7 +283,7 @@ const App: React.FC = () => {
         onOpenCodex={() => setCurrentView('codex')} 
       />
       
-      {/* Mobile Sticky HUD */}
+      {/* Mobile Sticky HUD - Only in Dungeon view */}
       {gameState.hero && currentView === 'dungeon' && (
         <div className="lg:hidden sticky top-[64px] z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-2 flex items-center justify-between text-xs font-mono">
            <div className="flex items-center gap-2">
@@ -302,7 +302,8 @@ const App: React.FC = () => {
       )}
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-4 md:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 flex flex-col gap-4 md:gap-6 order-1 lg:order-none">
+        {/* Hero Info Column - Hidden on Mobile during Combat */}
+        <div className={`lg:col-span-4 flex-col gap-4 md:gap-6 order-1 lg:order-none ${currentView === 'combat' ? 'hidden lg:flex' : 'flex'}`}>
           <HeroCard 
             hero={gameState.hero} 
             onSummon={summonHero} 
@@ -317,12 +318,12 @@ const App: React.FC = () => {
         <div className="lg:col-span-8 flex flex-col gap-4 md:gap-6 order-2 lg:order-none">
           {currentView === 'summon' && !gameState.hero && (
             <div className="h-full min-h-[400px] bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-8">Begin your journey</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-8 uppercase tracking-tighter">Choose Your Vessel</h2>
               <div className="flex flex-col gap-4 w-full max-w-md">
                 <button onClick={() => summonHero('standard')} className="w-full bg-emerald-600 hover:bg-emerald-500 px-8 py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95">
-                  Summon First Hero
+                  Begin The Ascent
                 </button>
-                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Initial summon is free</p>
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Your first life is a gift from the tower</p>
               </div>
               <button onClick={() => setCurrentView('codex')} className="mt-8 text-zinc-500 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">Consult the Codex</button>
             </div>
@@ -333,7 +334,7 @@ const App: React.FC = () => {
               <div className="bg-zinc-900/80 rounded-3xl p-5 md:p-6 border border-zinc-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Adventure</h3>
-                  <p className="text-lg md:text-2xl font-black">Ascend the Tower</p>
+                  <p className="text-lg md:text-2xl font-black">Ascend the Spire</p>
                 </div>
                 <button onClick={findEnemy} className="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold hover:bg-white transition-all active:scale-95 shadow-lg">Find Enemy</button>
               </div>
@@ -360,25 +361,25 @@ const App: React.FC = () => {
             <div className="bg-red-950/10 border border-red-900/30 rounded-3xl p-8 md:p-12 text-center flex flex-col items-center justify-center animate-in zoom-in duration-300">
               {gameState.hero && gameState.hero.gold < 10 ? (
                 <>
-                  <h2 className="text-5xl font-black text-red-600 mb-4 tracking-tighter uppercase">Total Defeat</h2>
+                  <h2 className="text-5xl font-black text-red-600 mb-4 tracking-tighter uppercase leading-none">Vessel Shattered</h2>
                   <p className="text-zinc-400 mb-8 max-w-sm font-mono uppercase tracking-widest text-[10px]">
-                    The gold reserves are depleted. No more heroes will answer your call.
+                    Your resources are depleted. The tower claims another soul.
                   </p>
                   <button onClick={restartJourney} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-all active:scale-95">
-                    RESTART JOURNEY
+                    START NEW LEGACY
                   </button>
                 </>
               ) : (
                 <>
                   <h2 className="text-4xl font-black text-red-500 mb-4 uppercase tracking-tighter">Hero Fallen</h2>
-                  <p className="text-zinc-400 mb-8 max-w-sm">Items lost. Level reset. But the keys remain.</p>
+                  <p className="text-zinc-400 mb-8 max-w-sm">Items lost. Level reset. Only the keys and gold persist.</p>
                   <div className="flex flex-col w-full max-w-xs gap-3">
                     <button onClick={() => summonHero('standard')} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-900/20 hover:bg-red-500 transition-all active:scale-95">
-                      New Hero (10🪙)
+                      Summon New Hero (10🪙)
                     </button>
                     {gameState.hero && gameState.hero.gold >= 100 && (
                       <button onClick={() => summonHero('legendary')} className="w-full bg-zinc-900 border border-yellow-600/50 text-yellow-500 py-4 rounded-xl font-bold shadow-xl transition-all hover:bg-yellow-600/10 active:scale-95">
-                        Legendary (100🪙)
+                        Legendary Vessel (100🪙)
                       </button>
                     )}
                   </div>
@@ -389,11 +390,11 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Sticky Bottom Bar */}
+      {/* Mobile Sticky Bottom Bar - Only in Dungeon View */}
       {gameState.hero && currentView === 'dungeon' && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent z-40 pointer-events-none">
            <button onClick={findEnemy} className="pointer-events-auto w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(16,185,129,0.5)] active:scale-95 transition-all">
-             SEARCH FLOOR
+             FIND ENEMY
            </button>
         </div>
       )}
