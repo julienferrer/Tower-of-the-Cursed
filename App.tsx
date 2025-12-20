@@ -12,6 +12,7 @@ import CombatPanel from './components/CombatPanel';
 import LogPanel from './components/LogPanel';
 import CodexView from './components/CodexView';
 import SanctuaryPanel from './components/SanctuaryPanel';
+import RulesView from './components/RulesView';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -31,7 +32,7 @@ const App: React.FC = () => {
     };
   });
 
-  const [currentView, setCurrentView] = useState<'summon' | 'dungeon' | 'combat' | 'dead' | 'win' | 'codex' | 'sanctuary'>('summon');
+  const [currentView, setCurrentView] = useState<'summon' | 'dungeon' | 'combat' | 'dead' | 'win' | 'codex' | 'sanctuary' | 'rules'>('summon');
   const [activeEnemy, setActiveEnemy] = useState<Enemy | Boss | null>(null);
   const [combatResult, setCombatResult] = useState<{ success: boolean; loot?: Equipment | null; gold?: number; exp?: number; message: string } | null>(null);
 
@@ -71,17 +72,6 @@ const App: React.FC = () => {
         Relic: []
       }
     });
-    setCurrentView('summon');
-  };
-
-  // Restart after death while keeping keys (Progression)
-  const restartJourney = () => {
-    setGameState(prev => ({
-      ...prev,
-      hero: null,
-      isDead: false,
-      logs: ["The vessel is lost, but the keys remain in your spirit. Summon a new host."]
-    }));
     setCurrentView('summon');
   };
 
@@ -309,6 +299,7 @@ const App: React.FC = () => {
         hero={gameState.hero} 
         unlockedKeys={gameState.unlockedKeys} 
         onOpenCodex={() => setCurrentView('codex')} 
+        onOpenRules={() => setCurrentView('rules')}
       />
       
       {/* Mobile Sticky HUD - Only in Dungeon view */}
@@ -351,7 +342,10 @@ const App: React.FC = () => {
                 <button onClick={() => summonHero('standard')} className="w-full bg-emerald-600 hover:bg-emerald-500 px-8 py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95">
                   Begin The Ascent
                 </button>
-                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Your first life is a gift from the tower</p>
+                <button onClick={() => setCurrentView('rules')} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-4 rounded-2xl font-bold text-sm transition-all active:scale-95 border border-zinc-700">
+                  How to Play
+                </button>
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mt-2">Your first life is a gift from the tower</p>
               </div>
               <button onClick={() => setCurrentView('codex')} className="mt-8 text-zinc-500 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">Consult the Codex</button>
             </div>
@@ -383,6 +377,10 @@ const App: React.FC = () => {
 
           {currentView === 'codex' && (
             <CodexView collection={gameState.collection} onClose={() => setCurrentView(gameState.hero ? 'dungeon' : 'summon')} />
+          )}
+
+          {currentView === 'rules' && (
+            <RulesView onClose={() => setCurrentView(gameState.hero ? 'dungeon' : 'summon')} />
           )}
 
           {currentView === 'dead' && (
