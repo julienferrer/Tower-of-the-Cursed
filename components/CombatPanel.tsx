@@ -18,28 +18,31 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
   const enemyRarity = !isBoss ? getRarityFromProb((enemy as Enemy).spawnRate) : null;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-      <div className="flex items-center justify-between mb-12">
-        <div className="text-left w-1/3">
-          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">YOU</div>
-          <div className="text-3xl font-black mb-1">Hero</div>
-          <div className="inline-block bg-emerald-500/10 text-emerald-400 font-mono text-xl px-4 py-1 rounded-lg border border-emerald-500/20">
+    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 md:p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="flex flex-row items-start justify-between mb-8 md:mb-12 gap-2">
+        {/* Hero Side */}
+        <div className="flex flex-col items-center md:items-start w-[45%]">
+          <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-1">YOU</div>
+          <div className="text-lg md:text-3xl font-black mb-2 text-center md:text-left truncate w-full">Hero</div>
+          <div className="bg-emerald-500/10 text-emerald-400 font-mono text-base md:text-xl px-3 md:px-4 py-1 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
             {heroForce}
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
-          <div className="text-zinc-700 text-5xl font-black italic">VS</div>
+        {/* VS Indicator */}
+        <div className="flex flex-col items-center justify-center pt-6">
+          <div className="text-zinc-800 text-xl md:text-5xl font-black italic select-none">VS</div>
         </div>
 
-        <div className="text-right w-1/3">
-          <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">
-            {isBoss ? 'GUARDIAN' : `NUMBER ${enemy.id} ${enemyRarity?.label.toUpperCase()}`}
+        {/* Enemy Side */}
+        <div className="flex flex-col items-center md:items-end w-[45%]">
+          <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-1">
+            {isBoss ? 'GUARDIAN' : `LEVEL ${enemy.id}`}
           </div>
-          <div className={`text-3xl font-black mb-1 ${isBoss ? 'text-red-500' : enemyRarity?.color}`}>
+          <div className={`text-lg md:text-3xl font-black mb-2 text-center md:text-right leading-tight break-words w-full ${isBoss ? 'text-red-500' : enemyRarity?.color}`}>
             {enemy.name}
           </div>
-          <div className={`inline-block font-mono text-xl px-4 py-1 rounded-lg border ${isBoss ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
+          <div className={`font-mono text-base md:text-xl px-3 md:px-4 py-1 rounded-xl border ${isBoss ? 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
             {enemy.force}
           </div>
         </div>
@@ -48,76 +51,78 @@ const CombatPanel: React.FC<CombatPanelProps> = ({ hero, enemy, result, onFight,
       {!result ? (
         <div className="flex flex-col items-center">
           <div className="mb-8 w-full max-w-sm">
-             <div className="flex justify-between text-xs font-bold text-zinc-500 uppercase mb-2">
-               <span>Chance of Victory</span>
+             <div className="flex justify-between text-[10px] font-bold text-zinc-600 uppercase mb-2 tracking-widest px-1">
+               <span>Win Rate</span>
                <span className={winProb > 70 ? 'text-emerald-500' : winProb > 40 ? 'text-yellow-500' : 'text-red-500'}>{winProb}%</span>
              </div>
-             <div className="h-4 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700 shadow-inner p-0.5">
+             <div className="h-3 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 shadow-inner p-0.5">
                 <div 
-                  className={`h-full rounded-full transition-all duration-1000 ${winProb > 70 ? 'bg-emerald-500' : winProb > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  className={`h-full rounded-full transition-all duration-700 ${winProb > 70 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : winProb > 40 ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}
                   style={{ width: `${winProb}%` }}
                 />
              </div>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-3 w-full max-w-sm">
              <button 
                onClick={onClose}
-               className="px-10 py-4 bg-transparent hover:bg-zinc-800 text-zinc-500 rounded-2xl font-bold transition-all"
+               className="flex-1 py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-600 rounded-2xl font-bold transition-all border border-zinc-800 active:scale-95 text-xs uppercase tracking-widest"
              >
                Retreat
              </button>
              <button 
                onClick={onFight}
-               className={`px-12 py-4 text-black rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl ${isBoss ? 'bg-red-500 hover:bg-red-400 shake' : 'bg-white hover:bg-zinc-200'}`}
+               className={`flex-[2] py-4 text-black rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl ${isBoss ? 'bg-red-600 hover:bg-red-500' : 'bg-white hover:bg-zinc-200'}`}
              >
                FIGHT
              </button>
           </div>
           
           {isBoss && (
-            <div className="mt-8 px-6 py-3 bg-red-950/20 border border-red-900/40 rounded-xl text-red-400 text-[10px] font-bold uppercase tracking-widest text-center">
-              ⚠️ Warning: Defeat means permanent character loss
+            <div className="mt-8 px-6 py-3 bg-red-950/10 border border-red-900/20 rounded-xl text-red-600 text-[9px] font-bold uppercase tracking-widest text-center animate-pulse">
+              ⚠️ Warning: Defeat means permanent loss
             </div>
           )}
         </div>
       ) : (
         <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className={`text-5xl font-black mb-6 tracking-tighter ${result.success ? 'text-emerald-500' : 'text-red-500'}`}>
+          <div className={`text-4xl md:text-5xl font-black mb-6 tracking-tighter ${result.success ? 'text-emerald-500' : 'text-red-600'}`}>
             {result.success ? 'VICTORY' : 'DEFEAT'}
           </div>
           
-          <div className="bg-black/40 rounded-3xl p-6 w-full max-w-md border border-zinc-800 mb-8 space-y-4">
+          <div className="bg-black/40 rounded-3xl p-5 md:p-6 w-full max-w-md border border-zinc-800 mb-8 space-y-4">
             {result.success ? (
               <>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Rewards</span>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-zinc-600 font-bold uppercase tracking-widest text-[9px]">Spoils of War</span>
                   <div className="flex gap-3">
-                    {result.exp && <span className="text-emerald-400 font-mono">+{result.exp} EXP</span>}
-                    {result.gold && <span className="text-yellow-500 font-mono">+{result.gold}🪙</span>}
+                    {result.exp && <span className="text-emerald-500 font-mono text-xs font-bold">+{result.exp} EXP</span>}
+                    {result.gold && <span className="text-yellow-500 font-mono text-xs font-bold">+{result.gold}🪙</span>}
                   </div>
                 </div>
-                {result.loot && (
-                  <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50 flex items-center justify-between">
+                {result.loot ? (
+                  <div className="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 flex items-center justify-between">
                      <div className="flex items-center gap-3">
                        <span className="text-2xl">🎁</span>
-                       <div>
-                         <div className="text-[10px] text-zinc-500 uppercase font-bold">New Item Found</div>
-                         <div className="text-sm font-bold">{result.loot.name}</div>
+                       <div className="min-w-0">
+                         <div className="text-[9px] text-zinc-600 uppercase font-bold">Auto Equipped</div>
+                         <div className="text-sm font-bold text-white truncate">{result.loot.name}</div>
                        </div>
                      </div>
-                     <span className="text-emerald-500 text-xs font-mono font-bold">+{result.loot.forceBonus} Force</span>
+                     <span className="text-emerald-500 text-xs font-mono font-bold shrink-0 ml-2">+{result.loot.forceBonus} ATK</span>
                   </div>
+                ) : (
+                  <p className="text-zinc-500 text-xs italic text-center py-2">The enemy held nothing of value.</p>
                 )}
               </>
             ) : (
-              <p className="text-zinc-400 text-center py-4">{result.message}</p>
+              <p className="text-zinc-500 text-center py-4 text-sm leading-relaxed">{result.message}</p>
             )}
           </div>
 
           <button 
             onClick={onClose}
-            className="px-12 py-4 bg-zinc-100 hover:bg-white text-black rounded-2xl font-black transition-all"
+            className="w-full max-w-xs py-4 bg-white hover:bg-zinc-200 text-black rounded-2xl font-black transition-all active:scale-95"
           >
             CONTINUE
           </button>

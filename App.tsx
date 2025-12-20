@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Hero, GameState, Enemy, Boss, CharacterClass, Equipment, SlotType, Rarity } from './types';
 import { CLASS_DATA, ENEMY_DATA, BOSS_DATA, SLOT_NAMES } from './constants';
-import { calculateTotalForce, getWinProbability, generateLoot, handleLevelUp } from './gameLogic';
+import { calculateTotalForce, getWinProbability, generateLoot, handleLevelUp, generateHighTierLoot } from './gameLogic';
 
 // UI Components
 import Header from './components/Header';
@@ -65,22 +65,29 @@ const App: React.FC = () => {
     setCurrentView('summon');
   };
 
-  const summonHero = () => {
-    const cost = (gameState.hero ? 10 : 0);
+  const summonHero = (type: 'standard' | 'legendary' = 'standard') => {
+    const cost = type === 'legendary' ? 100 : (gameState.hero ? 10 : 0);
     
     if (gameState.hero && gameState.hero.gold < cost && !gameState.isDead) {
-      addLog("Not enough gold to summon a new hero.");
+      addLog(`Not enough gold to perform a ${type} summon.`);
       return;
     }
 
-    let r = Math.random();
-    let selectedClass = CLASS_DATA[0];
-    let acc = 0;
-    for (const c of CLASS_DATA) {
-      acc += c.probability;
-      if (r <= acc) {
-        selectedClass = c;
-        break;
+    let selectedClass: CharacterClass;
+    
+    if (type === 'legendary') {
+      const legendaries = CLASS_DATA.slice(-5);
+      selectedClass = legendaries[Math.floor(Math.random() * legendaries.length)];
+    } else {
+      let r = Math.random();
+      let acc = 0;
+      selectedClass = CLASS_DATA[0];
+      for (const c of CLASS_DATA) {
+        acc += c.probability;
+        if (r <= acc) {
+          selectedClass = c;
+          break;
+        }
       }
     }
 
@@ -97,13 +104,37 @@ const App: React.FC = () => {
 
     setGameState(prev => ({ ...prev, hero: newHero, isDead: false }));
     setCurrentView('dungeon');
-    addLog(`Summoned: ${selectedClass.name}. Base Force: ${newHero.baseForce}`);
+    addLog(`${type === 'legendary' ? 'LEGENDARY ' : ''}Summoned: ${selectedClass.name}. Base Force: ${newHero.baseForce}`);
+  };
+
+  const summonArsenal = () => {
+    if (!gameState.hero || gameState.hero.gold < 50) {
+      addLog("Not enough gold for the Divine Arsenal.");
+      return;
+    }
+
+    const loot = generateHighTierLoot();
+    updateCollection(loot.slot, loot.rarity);
+    
+    setGameState(prev => {
+      if (!prev.hero) return prev;
+      const newHero = { ...prev.hero, gold: prev.hero.gold - 50 };
+      const currentItem = newHero.equipment[loot.slot];
+      if (!currentItem || loot.forceBonus > currentItem.forceBonus) {
+        newHero.equipment[loot.slot] = loot;
+        addLog(`Divine Arsenal: Equipped ${loot.name} (+${loot.forceBonus} Force)!`);
+      } else {
+        addLog(`Divine Arsenal: Found ${loot.name}, but current gear is stronger.`);
+      }
+      return { ...prev, hero: newHero };
+    });
   };
 
   const startCombat = (enemy: Enemy | Boss) => {
     setActiveEnemy(enemy);
     setCombatResult(null);
     setCurrentView('combat');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const resolveCombat = async () => {
@@ -230,51 +261,91 @@ const App: React.FC = () => {
   if (currentView === 'win') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-6 text-center">
-        <h1 className="text-6xl font-black text-emerald-500 mb-4 tracking-tighter">VICTORY</h1>
-        <p className="text-xl mb-8 max-w-md">The Void Entity is no more. You are free.</p>
-        <button onClick={() => window.location.reload()} className="bg-emerald-600 px-10 py-4 rounded-full font-bold">RESTART</button>
+        <div className="w-24 h-24 bg-emerald-500 rounded-3xl flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(16,185,129,0.5)] rotate-12">
+           <svg className="w-16 h-16 text-black" fill="currentColor" viewBox="0 0 20 20">
+             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+           </svg>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-black text-white mb-4 tracking-tighter uppercase">Tower Conquered</h1>
+        <p className="text-zinc-400 text-lg mb-12 max-w-md">The Void Entity lies shattered. The curse is broken. You are finally free.</p>
+        <button onClick={() => window.location.reload()} className="bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20">
+          RESTART LEGACY
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100">
+    <div className="min-h-screen bg-black text-gray-100 flex flex-col pb-24 lg:pb-0">
       <Header 
         hero={gameState.hero} 
         unlockedKeys={gameState.unlockedKeys} 
         onOpenCodex={() => setCurrentView('codex')} 
       />
       
-      <main className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24 lg:pb-8">
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <HeroCard hero={gameState.hero} onSummon={() => summonHero()} isDead={gameState.isDead} />
-          <LogPanel logs={gameState.logs} />
+      {/* Mobile Sticky HUD */}
+      {gameState.hero && currentView === 'dungeon' && (
+        <div className="lg:hidden sticky top-[64px] z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-2 flex items-center justify-between text-xs font-mono">
+           <div className="flex items-center gap-2">
+              <span className="text-zinc-500 uppercase">Force</span>
+              <span className="text-emerald-400 font-bold">{calculateTotalForce(gameState.hero)}</span>
+           </div>
+           <div className="flex items-center gap-2">
+              <span className="text-zinc-500 uppercase">Gold</span>
+              <span className="text-yellow-500 font-bold">{gameState.hero.gold}🪙</span>
+           </div>
+           <div className="flex items-center gap-2">
+              <span className="text-zinc-500 uppercase">Floor</span>
+              <span className="text-white font-bold">{gameState.unlockedKeys.length + 1}</span>
+           </div>
+        </div>
+      )}
+
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-4 md:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-4 md:gap-6 order-1 lg:order-none">
+          <HeroCard 
+            hero={gameState.hero} 
+            onSummon={summonHero} 
+            onSummonArsenal={summonArsenal}
+            isDead={gameState.isDead} 
+          />
+          <div className="hidden lg:block">
+            <LogPanel logs={gameState.logs} />
+          </div>
         </div>
 
-        <div className="lg:col-span-8 flex flex-col gap-6">
+        <div className="lg:col-span-8 flex flex-col gap-4 md:gap-6 order-2 lg:order-none">
           {currentView === 'summon' && !gameState.hero && (
-            <div className="h-full bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-12 text-center">
-              <h2 className="text-3xl font-bold mb-8">Choose your fate</h2>
-              <button onClick={() => summonHero()} className="bg-emerald-600 px-8 py-3 rounded-xl font-bold shadow-xl mb-4">Summon (Free)</button>
-              <button onClick={() => setCurrentView('codex')} className="text-zinc-500 hover:text-white transition-colors">Consult the Codex</button>
+            <div className="h-full min-h-[400px] bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-8 md:p-12 text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-8">Begin your journey</h2>
+              <div className="flex flex-col gap-4 w-full max-w-md">
+                <button onClick={() => summonHero('standard')} className="w-full bg-emerald-600 hover:bg-emerald-500 px-8 py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95">
+                  Summon First Hero
+                </button>
+                <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Initial summon is free</p>
+              </div>
+              <button onClick={() => setCurrentView('codex')} className="mt-8 text-zinc-500 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">Consult the Codex</button>
             </div>
           )}
 
           {currentView === 'dungeon' && gameState.hero && (
-            <div className="flex flex-col gap-6 h-full">
-              <div className="bg-zinc-900/80 rounded-3xl p-6 border border-zinc-800 flex items-center justify-between">
+            <div className="flex flex-col gap-4 md:gap-6 h-full">
+              <div className="bg-zinc-900/80 rounded-3xl p-5 md:p-6 border border-zinc-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-zinc-400">Current Objective</h3>
-                  <p className="text-2xl font-black">Explore or Challenge</p>
+                  <h3 className="text-[10px] md:text-sm font-bold text-zinc-400 uppercase tracking-widest">Adventure</h3>
+                  <p className="text-lg md:text-2xl font-black">Ascend the Tower</p>
                 </div>
-                <button onClick={findEnemy} className="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold">Find Enemy</button>
+                <button onClick={findEnemy} className="bg-zinc-100 text-black px-6 py-3 rounded-xl font-bold hover:bg-white transition-all active:scale-95 shadow-lg">Find Enemy</button>
               </div>
               <TowerMap unlockedKeys={gameState.unlockedKeys} maxBossDefeated={gameState.maxBossDefeated} onChallenge={startCombat} />
+              <div className="lg:hidden mb-12">
+                <LogPanel logs={gameState.logs} />
+              </div>
             </div>
           )}
 
           {currentView === 'combat' && activeEnemy && (
-            <CombatPanel hero={gameState.hero!} enemy={activeEnemy} result={combatResult} onFight={resolveCombat} onClose={() => setCurrentView('dungeon')} />
+            <CombatPanel hero={gameState.hero!} enemy={activeEnemy} result={combatResult} onFight={resolveCombat} onClose={() => { setCurrentView('dungeon'); window.scrollTo({top: 0, behavior: 'smooth'}); }} />
           )}
 
           {currentView === 'sanctuary' && (
@@ -286,30 +357,46 @@ const App: React.FC = () => {
           )}
 
           {currentView === 'dead' && (
-            <div className="bg-red-950/20 border border-red-900/50 rounded-3xl p-12 text-center flex flex-col items-center justify-center animate-in zoom-in duration-300">
+            <div className="bg-red-950/10 border border-red-900/30 rounded-3xl p-8 md:p-12 text-center flex flex-col items-center justify-center animate-in zoom-in duration-300">
               {gameState.hero && gameState.hero.gold < 10 ? (
                 <>
-                  <h2 className="text-5xl font-black text-red-600 mb-4">TOTAL DEFEAT</h2>
-                  <p className="text-zinc-400 mb-8 max-w-sm font-mono uppercase tracking-widest text-xs">
-                    You have run out of gold to summon a new protector. The tower has consumed your legacy.
+                  <h2 className="text-5xl font-black text-red-600 mb-4 tracking-tighter uppercase">Total Defeat</h2>
+                  <p className="text-zinc-400 mb-8 max-w-sm font-mono uppercase tracking-widest text-[10px]">
+                    The gold reserves are depleted. No more heroes will answer your call.
                   </p>
-                  <button onClick={restartJourney} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors">
+                  <button onClick={restartJourney} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-all active:scale-95">
                     RESTART JOURNEY
                   </button>
                 </>
               ) : (
                 <>
-                  <h2 className="text-4xl font-black text-red-500 mb-4 uppercase">Character Lost</h2>
-                  <p className="text-zinc-400 mb-8 max-w-sm">Your items have vanished, but your keys are eternal.</p>
-                  <button onClick={summonHero} className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-red-900/20 hover:bg-red-500 transition-colors">
-                    New Summon (10🪙)
-                  </button>
+                  <h2 className="text-4xl font-black text-red-500 mb-4 uppercase tracking-tighter">Hero Fallen</h2>
+                  <p className="text-zinc-400 mb-8 max-w-sm">Items lost. Level reset. But the keys remain.</p>
+                  <div className="flex flex-col w-full max-w-xs gap-3">
+                    <button onClick={() => summonHero('standard')} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-900/20 hover:bg-red-500 transition-all active:scale-95">
+                      New Hero (10🪙)
+                    </button>
+                    {gameState.hero && gameState.hero.gold >= 100 && (
+                      <button onClick={() => summonHero('legendary')} className="w-full bg-zinc-900 border border-yellow-600/50 text-yellow-500 py-4 rounded-xl font-bold shadow-xl transition-all hover:bg-yellow-600/10 active:scale-95">
+                        Legendary (100🪙)
+                      </button>
+                    )}
+                  </div>
                 </>
               )}
             </div>
           )}
         </div>
       </main>
+
+      {/* Mobile Sticky Bottom Bar */}
+      {gameState.hero && currentView === 'dungeon' && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent z-40 pointer-events-none">
+           <button onClick={findEnemy} className="pointer-events-auto w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-lg shadow-[0_0_40px_rgba(16,185,129,0.5)] active:scale-95 transition-all">
+             SEARCH FLOOR
+           </button>
+        </div>
+      )}
     </div>
   );
 };

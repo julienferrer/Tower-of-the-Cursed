@@ -17,15 +17,14 @@ export const getWinProbability = (heroForce: number, enemyForce: number): number
 
 /**
  * Calculates experience required for the next level.
- * Accelerated formula: 20 base + 20 per level.
+ * Significantly reduced for faster progression.
  */
 export const getRequiredExp = (level: number): number => {
-  return 20 + (level * 20);
+  return 10 + (level * 10);
 };
 
 export const generateLoot = (enemyForce: number): Equipment | null => {
   const baseSeed = Math.random();
-  // Rarity bonus based on enemy force (max +15% chance for better rarity)
   const forceBonus = Math.min(0.15, enemyForce / 500);
   const roll = baseSeed - forceBonus;
 
@@ -49,22 +48,42 @@ export const generateLoot = (enemyForce: number): Equipment | null => {
   };
 };
 
+/**
+ * Generates high-tier equipment (Rare+) for the Divine Arsenal summon.
+ */
+export const generateHighTierLoot = (): Equipment => {
+  const roll = Math.random();
+  let rarity: Rarity = Rarity.RARE;
+
+  if (roll < 0.10) rarity = Rarity.LEGENDARY;
+  else if (roll < 0.40) rarity = Rarity.EPIC;
+  else rarity = Rarity.RARE;
+
+  const slot = SLOT_NAMES[Math.floor(Math.random() * SLOT_NAMES.length)];
+  const bonus = RARITY_BONUS[rarity];
+
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    name: `${rarity} ${slot}`,
+    slot: slot,
+    rarity: rarity,
+    forceBonus: bonus
+  };
+};
+
 export const handleLevelUp = (hero: Hero): Hero => {
   let currentHero = { ...hero };
   let needed = getRequiredExp(currentHero.level);
   let leveledUp = false;
   
-  // Loop in case XP gain skips multiple levels
   while (currentHero.exp >= needed) {
     currentHero.exp -= needed;
     currentHero.level += 1;
-    // Add +15 to reach target potential (e.g., 40 -> 325 in 19 levels)
     currentHero.baseForce += 15;
     leveledUp = true;
     needed = getRequiredExp(currentHero.level);
   }
 
-  // If level up, restore all lives
   if (leveledUp) {
     currentHero.lives = 2;
   }
@@ -72,9 +91,6 @@ export const handleLevelUp = (hero: Hero): Hero => {
   return currentHero;
 };
 
-/**
- * Determines rarity based on probability (e.g., 0.10 for 10%)
- */
 export const getRarityFromProb = (prob: number) => {
   const p = prob * 100;
   if (p < 1.5) return { label: 'Legendary', color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' };
