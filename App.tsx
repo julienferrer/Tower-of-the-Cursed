@@ -403,11 +403,13 @@ const App: React.FC = () => {
                     <button onClick={() => summonHero('standard')} className="w-full bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-900/20 hover:bg-red-500 transition-all active:scale-95">
                       Summon New Hero (10🪙)
                     </button>
-                    {gameState.hero && gameState.hero.gold >= 100 && (
-                      <button onClick={() => summonHero('legendary')} className="w-full bg-zinc-900 border border-yellow-600/50 text-yellow-500 py-4 rounded-xl font-bold shadow-xl transition-all hover:bg-yellow-600/10 active:scale-95">
-                        Legendary Vessel (100🪙)
-                      </button>
-                    )}
+                    <button 
+                      onClick={() => summonHero('legendary')} 
+                      disabled={gameState.hero ? gameState.hero.gold < 100 : true}
+                      className={`w-full bg-zinc-900 border border-yellow-600/50 text-yellow-500 py-4 rounded-xl font-bold shadow-xl transition-all hover:bg-yellow-600/10 active:scale-95 ${(gameState.hero && gameState.hero.gold < 100) ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
+                    >
+                      Legendary Hero (100🪙)
+                    </button>
                   </div>
                 </>
               )}
