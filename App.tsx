@@ -55,12 +55,32 @@ const App: React.FC = () => {
     });
   };
 
+  // Full reset for a completely new start (Restart Journey)
+  const resetEntireGame = () => {
+    setGameState({
+      hero: null,
+      unlockedKeys: [],
+      maxBossDefeated: 0,
+      isDead: false,
+      gameWon: false,
+      logs: ["A new legacy begins. The tower has reset its cycle."],
+      collection: {
+        Weapon: [],
+        Armor: [],
+        Accessory: [],
+        Relic: []
+      }
+    });
+    setCurrentView('summon');
+  };
+
+  // Restart after death while keeping keys (Progression)
   const restartJourney = () => {
     setGameState(prev => ({
       ...prev,
       hero: null,
       isDead: false,
-      logs: ["A new journey begins. The tower remains, but your pockets are empty."]
+      logs: ["The vessel is lost, but the keys remain in your spirit. Summon a new host."]
     }));
     setCurrentView('summon');
   };
@@ -91,12 +111,18 @@ const App: React.FC = () => {
       }
     }
 
+    // Start at level 1
+    const startLevel = 1;
+    const baseForceAtLevelOne = selectedClass.minForce;
+    // Every level after level 1 grants +15 base force
+    const levelBonus = (startLevel - 1) * 15;
+
     const newHero: Hero = {
       name: `Dungeon Seeker`,
       class: selectedClass,
-      baseForce: selectedClass.minForce,
+      baseForce: baseForceAtLevelOne + levelBonus,
       exp: 0,
-      level: 1,
+      level: startLevel,
       gold: gameState.hero ? Math.max(0, gameState.hero.gold - cost) : 0,
       lives: 2,
       equipment: { Weapon: null, Armor: null, Accessory: null, Relic: null }
@@ -104,7 +130,7 @@ const App: React.FC = () => {
 
     setGameState(prev => ({ ...prev, hero: newHero, isDead: false }));
     setCurrentView('dungeon');
-    addLog(`${type === 'legendary' ? 'LEGENDARY ' : ''}Summoned: ${selectedClass.name}. Base Force: ${newHero.baseForce}`);
+    addLog(`${type === 'legendary' ? 'LEGENDARY ' : ''}Summoned: ${selectedClass.name}. Level: ${newHero.level}. Base Force: ${newHero.baseForce}`);
   };
 
   const summonArsenal = () => {
@@ -161,7 +187,9 @@ const App: React.FC = () => {
           const keys = prev.unlockedKeys.includes(boss.keyName) ? prev.unlockedKeys : [...prev.unlockedKeys, boss.keyName];
           const newMax = Math.max(prev.maxBossDefeated, boss.id);
           const isFinal = boss.id === 10;
-          if (isFinal) setTimeout(() => setCurrentView('win'), 1000);
+          if (isFinal) {
+             setTimeout(() => setCurrentView('win'), 1000);
+          }
           return {
             ...prev,
             unlockedKeys: keys,
@@ -268,8 +296,8 @@ const App: React.FC = () => {
         </div>
         <h1 className="text-5xl md:text-7xl font-black text-white mb-4 tracking-tighter uppercase">Tower Conquered</h1>
         <p className="text-zinc-400 text-lg mb-12 max-w-md">The Void Entity lies shattered. The curse is broken. You are finally free.</p>
-        <button onClick={() => window.location.reload()} className="bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20">
-          RESTART LEGACY
+        <button onClick={resetEntireGame} className="bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-5 rounded-2xl font-black text-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20">
+          RESTART JOURNEY
         </button>
       </div>
     );
@@ -365,8 +393,8 @@ const App: React.FC = () => {
                   <p className="text-zinc-400 mb-8 max-w-sm font-mono uppercase tracking-widest text-[10px]">
                     Your resources are depleted. The tower claims another soul.
                   </p>
-                  <button onClick={restartJourney} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-all active:scale-95">
-                    START NEW LEGACY
+                  <button onClick={resetEntireGame} className="bg-white text-black px-10 py-4 rounded-xl font-bold hover:bg-zinc-200 transition-all active:scale-95">
+                    RESTART JOURNEY
                   </button>
                 </>
               ) : (
